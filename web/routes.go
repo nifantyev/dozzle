@@ -49,6 +49,7 @@ type DockerClient interface {
 	Events(context.Context, chan<- docker.ContainerEvent) <-chan error
 	ContainerLogsBetweenDates(context.Context, string, time.Time, time.Time, docker.StdType) (io.ReadCloser, error)
 	ContainerStats(context.Context, string, chan<- docker.ContainerStat) error
+	RestartContainer(context.Context, string) error
 	Ping(context.Context) (types.Ping, error)
 	Host() *docker.Host
 }
@@ -81,6 +82,7 @@ func createRouter(h *handler) *chi.Mux {
 			r.Get("/api/logs/download/{host}/{id}", h.downloadLogs)
 			r.Get("/api/logs/{host}/{id}", h.fetchLogsBetweenDates)
 			r.Get("/api/events/stream", h.streamEvents)
+			r.Post("/api/restart", h.restartContainer)
 			r.Get("/logout", h.clearSession)
 			r.Get("/version", h.version)
 		})
@@ -257,4 +259,19 @@ func (h *handler) clientFromRequest(r *http.Request) DockerClient {
 
 	log.Fatalf("No client found for host %v and url %v", host, r.URL)
 	return nil
+}
+
+func (h *handler) restartContainer(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	var client DockerClient
+	for _, v := range h.clients {
+		client = v
+		break
+	}
+	container, err := client.FindContainer(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	client.RestartContainer(r.Context(), container.ID)
 }

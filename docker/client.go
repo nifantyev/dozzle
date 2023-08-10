@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
@@ -48,6 +49,7 @@ type DockerCLI interface {
 	Events(context.Context, types.EventsOptions) (<-chan events.Message, <-chan error)
 	ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error)
 	ContainerStats(ctx context.Context, containerID string, stream bool) (types.ContainerStats, error)
+	ContainerRestart(ctx context.Context, containerID string, options container.StopOptions) error
 	Ping(ctx context.Context) (types.Ping, error)
 }
 
@@ -322,4 +324,8 @@ func findBetweenParentheses(s string) string {
 		return results[1]
 	}
 	return ""
+}
+
+func (d *Client) RestartContainer(ctx context.Context, id string) error {
+	return d.cli.ContainerRestart(ctx, id, container.StopOptions{Timeout: nil})
 }

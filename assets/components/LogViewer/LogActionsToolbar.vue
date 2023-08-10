@@ -106,6 +106,19 @@
         </div>
       </div>
     </a>
+    <hr class="dropdown-divider" />
+    <a class="dropdown-item" @click="restart(container.id)">
+      <div class="level is-justify-content-start">
+        <div class="level-left">
+          <div class="level-item">
+            <octicon:sync-24 />
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">{{ $t("toolbar.restart") }}</div>
+        </div>
+      </div>
+    </a>
   </dropdown-menu>
 </template>
 
@@ -115,8 +128,17 @@ import { Container } from "@/models/Container";
 
 const { showSearch } = useSearchFilter();
 const { base } = config;
+const { t } = useI18n();
 
 const clear = defineEmit();
+
+async function restart(containerId: string) {
+  if (window.confirm(`${t("toolbar.restart")}?`)) {
+    await fetch(`${config.base}/api/restart?id=${containerId}`, {
+      method: "post",
+    });
+  }
+}
 
 const container = inject("container") as ComputedRef<Container>;
 const streamConfig = inject("stream-config") as { stdout: boolean; stderr: boolean };

@@ -4,6 +4,7 @@ toolbar:
   search: Поиск
   show: Показать только {std}
   show-all: Показать все потоки
+  restart: Перезапустить
 label:
   containers: Контейнеры
   total-containers: Всего Контейнеров
